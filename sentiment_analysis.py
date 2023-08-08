@@ -55,7 +55,7 @@ def analyze_sentiment(predictions, threshold=0.5):
     return sentiment_label, star_rating
 
 
-# Try to change pipeline tos ee if few-shot will improve
+# Try to change pipeline to see if few-shot will improve
 
 def process_row(models, row):
     review = row.Review
@@ -70,12 +70,14 @@ def process_row(models, row):
                 sentiment_label = vader_sentiment(model, review)
                 matches_source = 'Yes' if sentiment_label == row.Annotated_Sentiment else 'No'
                 row = row._replace(Vader_Sentiment=sentiment_label, Matches_Vader=matches_source)
+
+
             elif sentiment_field == 'Seethal_Sentiment':
                 # The Seethal_Sentiment model has a different output compared to the rest so it needs its own row processing
 
-                if few_shot:
-                    prompt = """ Sobrang bait ng guard and the teller was really polite. This is: LABEL_2, Everyone was rude and snappy. I expected better, sana hindi maulit. This is: LABEL_0, I have no comment, wala akong masasabi. This is: LABEL_1,"""
-                    review = prompt + review + ". This is: "
+                # if few_shot:
+                #     prompt = """ Sobrang bait ng guard and the teller was really polite. This is: LABEL_2, Everyone was rude and snappy. I expected better, sana hindi maulit. This is: LABEL_0, I have no comment, wala akong masasabi. This is: LABEL_1,"""
+                #     review = prompt + review + ". This is: "
 
                 sentiment_scores = model(review)[0]
                 # print(sentiment_field, sentiment_scores)
@@ -88,24 +90,30 @@ def process_row(models, row):
                     sentiment_label = 'NEG'
                 matches_source = 'Yes' if sentiment_label == row.Annotated_Sentiment else 'No'
                 row = row._replace(Seethal_Sentiment=sentiment_label, Matches_Seethal=matches_source)
+
+
             elif sentiment_field == 'Bert_Nlptown_Sentiment':
                 # this model is processed by another function
                 sentiment_label, star_rating = analyze_sentiment(model(review))
                 row = row._replace(Bert_Nlptown_Sentiment=sentiment_label, Matches_Bert_Nlptown='Yes' if sentiment_label == row.Annotated_Sentiment else 'No', Bert_Nlptown_Rating=star_rating)
+
+
             elif sentiment_field == 'Finiteautomata_Sentiment' or sentiment_field == 'Pysentimiento_Sentiment':
-                if few_shot:
-                    prompt = """Sobrang bait ng guard and the teller was really polite. This is: POS, Everyone was rude and snappy. I expected better, sana hindi maulit. This is: NEG, I have no comment, wala akong masasabi. This is: NEU, """
-                    review = prompt + review + ". This is: "
+                # if few_shot:
+                #     prompt = """Sobrang bait ng guard and the teller was really polite. This is: POS, Everyone was rude and snappy. I expected better, sana hindi maulit. This is: NEG, I have no comment, wala akong masasabi. This is: NEU, """
+                #     review = prompt + review + ". This is: "
                 sentiment_scores = model(review)[0]
                 # print(sentiment_field, sentiment_scores)
                 sentiment_label = sentiment_scores['label']
                 matches_source = 'Yes' if sentiment_label == row.Annotated_Sentiment else 'No'
                 row = row._replace(**{sentiment_field: sentiment_label, matches_field: matches_source})
+
+
             else:
                 # All the models that have the same outputs are processed here
-                if few_shot:
-                    prompt = """Sobrang bait ng guard and the teller was really polite. This is: positive, Everyone was rude and snappy. I expected better, sana hindi maulit. This is: negative, I have no comment, wala akong masasabi. This is: neutral, """
-                    review = prompt + review + ". This is: "
+                # if few_shot:
+                #     prompt = """Sobrang bait ng guard and the teller was really polite. This is: positive, Everyone was rude and snappy. I expected better, sana hindi maulit. This is: negative, I have no comment, wala akong masasabi. This is: neutral, """
+                #     review = prompt + review + ". This is: "
                 sentiment_scores = model(review)[0]
                 # print(sentiment_field, sentiment_scores)
                 sentiment_label = sentiment_scores['label']
@@ -117,6 +125,8 @@ def process_row(models, row):
                     sentiment_label = 'NEG'
                 matches_source = 'Yes' if sentiment_label == row.Annotated_Sentiment else 'No'
                 row = row._replace(**{sentiment_field: sentiment_label, matches_field: matches_source})
+
+                
         # print(row)
     except Exception as e:
         print(f"Error processing row {row}: {e}")
@@ -140,12 +150,12 @@ Row = namedtuple('Row', [
     # Upon initial testing, few-shot really didn't improve the performance. It actually made it worse. Reason's for that may
     # be found in this study https://arxiv.org/pdf/2305.01555.pdf where more prompts or demonstrations actually made the performance worse
     # We can try different prompt designs for the model.
-    'DistilBERT_Sentiment_FewShot', 'Matches_DistilBERT_FewShot',
-    'Finiteautomata_Sentiment_FewShot', 'Matches_Finiteautomata_FewShot',
-    'Pysentimiento_Sentiment_FewShot', 'Matches_Pysentimiento_FewShot',
-    'Cardiffnlp_Roberta_Sentiment_FewShot','Matches_Cardiffnlp_Roberta_FewShot',
-    'Cardiffnlp_Xlm_Robert_Sentiment_FewShot', 'Matches_Cardiffnlp_Xlm_Robert_FewShot',
-    'Seethal_Sentiment_FewShot', 'Matches_Seethal_FewShot',
+    # 'DistilBERT_Sentiment_FewShot', 'Matches_DistilBERT_FewShot',
+    # 'Finiteautomata_Sentiment_FewShot', 'Matches_Finiteautomata_FewShot',
+    # 'Pysentimiento_Sentiment_FewShot', 'Matches_Pysentimiento_FewShot',
+    # 'Cardiffnlp_Roberta_Sentiment_FewShot','Matches_Cardiffnlp_Roberta_FewShot',
+    # 'Cardiffnlp_Xlm_Robert_Sentiment_FewShot', 'Matches_Cardiffnlp_Xlm_Robert_FewShot',
+    # 'Seethal_Sentiment_FewShot', 'Matches_Seethal_FewShot',
     ])
 
 start_time = time.time()
@@ -190,15 +200,16 @@ models = [(vader_model, 'Vader_Sentiment', 'Matches_Vader', None, False),
           (roberta_cardiffnlp_model, 'Cardiffnlp_Roberta_Sentiment', 'Matches_Cardiffnlp_Roberta', None, False),
           (xlm_roberta_cardiffnlp_model, 'Cardiffnlp_Xlm_Robert_Sentiment', 'Matches_Cardiffnlp_Xlm_Robert', None, False),
           (bert_Seethal_model, 'Seethal_Sentiment', 'Matches_Seethal', None, False),
-          (bert_nlptown_model, 'Bert_Nlptown_Sentiment', 'Matches_Bert_Nlptown', 'Bert_Nlptown_Rating', False),
+          (bert_nlptown_model, 'Bert_Nlptown_Sentiment', 'Matches_Bert_Nlptown', 'Bert_Nlptown_Rating', False)
           # Repeating the models for few-shot prompting. VADER and bert-nlptown is not added as VADER is not an LLM and bert-nlptown outputs 
           # number of stars the review may leave. It already performs rather well so I'm going to leave it alone
-          (distilbert_lxyuan_model, 'DistilBERT_Sentiment_FewShot', 'Matches_DistilBERT_FewShot', None, True),
-          (bert_finiteautomata_model, 'Finiteautomata_Sentiment_FewShot', 'Matches_Finiteautomata_FewShot', None, True),
-          (robertuito_pysentimiento_model, 'Pysentimiento_Sentiment_FewShot', 'Matches_Pysentimiento_FewShot', None, True),
-          (roberta_cardiffnlp_model, 'Cardiffnlp_Roberta_Sentiment_FewShot', 'Matches_Cardiffnlp_Roberta_FewShot', None, True),
-          (xlm_roberta_cardiffnlp_model, 'Cardiffnlp_Xlm_Robert_Sentiment_FewShot', 'Matches_Cardiffnlp_Xlm_Robert_FewShot', None, True),
-          (bert_Seethal_model, 'Seethal_Sentiment_FewShot', 'Matches_Seethal_FewShot', None, True)]
+          # ,(distilbert_lxyuan_model, 'DistilBERT_Sentiment_FewShot', 'Matches_DistilBERT_FewShot', None, True),
+          # (bert_finiteautomata_model, 'Finiteautomata_Sentiment_FewShot', 'Matches_Finiteautomata_FewShot', None, True),
+          # (robertuito_pysentimiento_model, 'Pysentimiento_Sentiment_FewShot', 'Matches_Pysentimiento_FewShot', None, True),
+          # (roberta_cardiffnlp_model, 'Cardiffnlp_Roberta_Sentiment_FewShot', 'Matches_Cardiffnlp_Roberta_FewShot', None, True),
+          # (xlm_roberta_cardiffnlp_model, 'Cardiffnlp_Xlm_Robert_Sentiment_FewShot', 'Matches_Cardiffnlp_Xlm_Robert_FewShot', None, True),
+          # (bert_Seethal_model, 'Seethal_Sentiment_FewShot', 'Matches_Seethal_FewShot', None, True)
+          ]
 
 # prompt = """Sobrang bait ng guard and the teller was really polite. This is: positive, Everyone was rude and snappy. I expected better, sana hindi maulit. This is: negative, I have no comment, wala akong masasabi. This is: neutral, """
 # The above prompt is demonstrative, it decreased the performance of the model. Leaning more towards the negative side it seems. It's possible that there's a bug so need to investigate
@@ -220,8 +231,6 @@ with open('input.csv', 'r') as file, open('output.csv', 'w', newline='') as outf
         row_records = (map(process_row_with_model, row_records))
 
     writer.writerows(row_records)  # Write all the modified rows to the output CSV
-
-    print("CSV creation completed.")
 
 end_time = time.time()
 print("Execution Time: ", end_time-start_time, " seconds")
