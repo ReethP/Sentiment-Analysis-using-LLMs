@@ -1,17 +1,17 @@
 from transformers import AutoModel, AutoTokenizer
 
 model_urls = [
-    # "transformer3/H2-keywordextractor", # possible future model to be used for keyword extraction
-    "finiteautomata/bertweet-base-sentiment-analysis", # Sentiment Analysis roBERTa finetuned on english twitter data
-    "lxyuan/distilbert-base-multilingual-cased-sentiments-student", # distilbert Sentiment Analysis
-    "pysentimiento/robertuito-sentiment-analysis", # Sentiment Analysis roBERTa finetuned on Spanish twitter Data
-    "cardiffnlp/twitter-roberta-base-sentiment-latest", # Sentiment Analysis roBERTa finetuned on english twitter data
-    "cardiffnlp/twitter-xlm-roberta-base-sentiment", # roBERTa finetuned on english twitter data finetuned on multiple languages
-    "Seethal/sentiment_analysis_generic_dataset", # Ready to use Sentiment Analysis BERT
-    "nlptown/bert-base-multilingual-uncased-sentiment", # Ready to use star-rating prediction BERT finetuned on multilingual reviews
+    # "transformer3/H2-keywordextractor", # A possible future model to be used for keyword extraction
+    "finiteautomata/bertweet-base-sentiment-analysis", # roBERTa finetuned for Sentiment Analysis using english twitter data
+    "lxyuan/distilbert-base-multilingual-cased-sentiments-student", # distilbert finetuned for Sentiment Analysis using student reviews
+    "pysentimiento/robertuito-sentiment-analysis", # roBERTa finetuned for Sentiment Analysis using Spanish twitter Data
+    "cardiffnlp/twitter-roberta-base-sentiment-latest", # roBERTa finetuned for Sentiment Analysis  using english twitter data
+    "cardiffnlp/twitter-xlm-roberta-base-sentiment", # roBERTa finetuned on twitter data using multiple languages
+    "Seethal/sentiment_analysis_generic_dataset", # BERT finetuned for Sentiment Analysis using a generic dataset
+    "nlptown/bert-base-multilingual-uncased-sentiment", # BERT finetuned to predict star-rating using multilingual reviews
 ]
 
-    # Other possibble models to be used for text summarization / for fine-tuning
+    # Other possible models to be used for text summarization / for fine-tuning
     # "google/pegasus-large",
     # "google/umt5-base",
     # "facebook/m2m100_1.2B",
