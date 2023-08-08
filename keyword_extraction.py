@@ -46,6 +46,7 @@ with open('input.csv', 'r') as file, open('output_keywords.csv', 'w', newline=''
         yake_keywords = ', '.join([keyword[0] for keyword in kw_extractor.extract_keywords(text)[:3]]) if len(kw_extractor.extract_keywords(text)) > 0 else ""
 
         # TextRank
+        # Note: Sometimes TextRank fails to identify relevant keywords
         try:
             TR_keywords = ', '.join([keyword[0] for keyword in keywords.keywords(text, scores=True, words=3)]) if len(keywords.keywords(text, scores=True, words=3)) > 0 else ""
         except IndexError:
