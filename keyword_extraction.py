@@ -14,11 +14,10 @@ from keybert import KeyBERT
 
 text = "ADDRESSED MY CONCERN PROPERLY, VERY HELPFUL AND PATIENT. KUDOS TO YOUR BEST EMPLOYEE"
 # ----RAKE
-# Uses stopwords for english from NLTK, and all puntuation characters by
-# default
+# Uses stopwords for english from NLTK, and all puntuation characters by default
 r = Rake()
 
-# Extraction given the text.
+# Extraction given the text
 print("Rake: ")
 r.extract_keywords_from_text(text)
 
