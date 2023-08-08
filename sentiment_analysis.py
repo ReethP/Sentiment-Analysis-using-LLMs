@@ -55,7 +55,7 @@ def analyze_sentiment(predictions, threshold=0.5):
     return sentiment_label, star_rating
 
 
-# Try to change pipeline tos ee if few-shot will improve
+# Try to change pipeline to see if few-shot will improve
 
 def process_row(models, row):
     review = row.Review
@@ -220,8 +220,6 @@ with open('input.csv', 'r') as file, open('output.csv', 'w', newline='') as outf
         row_records = (map(process_row_with_model, row_records))
 
     writer.writerows(row_records)  # Write all the modified rows to the output CSV
-
-    print("CSV creation completed.")
 
 end_time = time.time()
 print("Execution Time: ", end_time-start_time, " seconds")
