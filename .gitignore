@@ -2,3 +2,5 @@
 input.csv
 input.xlsx
 *.csv
+headers_datatypes.py
+header_datatypes.txt
