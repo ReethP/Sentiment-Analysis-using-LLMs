@@ -4,3 +4,7 @@ input.xlsx
 *.csv
 headers_datatypes.py
 header_datatypes.txt
+sample_extract.xlsx
+__pycache__/keyword_extraction.cpython-311.pyc
+__pycache__/sentiment_analysis.cpython-311.pyc
+__pycache__/topic_identification.cpython-311.pyc

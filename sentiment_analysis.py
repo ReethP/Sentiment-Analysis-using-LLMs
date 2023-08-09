@@ -3,14 +3,39 @@ from transformers import AutoModel, AutoTokenizer, pipeline
 import time
 from multiprocessing import Pool
 from collections import namedtuple, defaultdict
-from functools import partial
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-performance_metrics = {'Total_Rows':0,'Vader_Correct':0,'DistilBERT_Correct':0,'Finiteautomata_Correct':0,'Pysentimiento_Correct':0,'Cardiffnlp_Roberta_Correct':0,'Cardiffnlp_Xlm_Correct':0,'Seethal_Correct':0,'Bert_Nlptown_Correct':0}
+def initialize_models():
+    vader_model = SentimentIntensityAnalyzer()
+    nlptown = pipeline(task = "sentiment-analysis",model="nlptown/bert-base-multilingual-uncased-sentiment",top_k=None)
+
+    model_configs = {
+        'DistilBERT': ('lxyuan/distilbert-base-multilingual-cased-sentiments-student','sentiment-analysis'),
+        'Finiteautomata': ('finiteautomata/bertweet-base-sentiment-analysis','sentiment-analysis'),
+        'Pysentimiento': ('pysentimiento/robertuito-sentiment-analysis', 'sentiment-analysis'),
+        'Cardiffnlp_Roberta': ('cardiffnlp/twitter-roberta-base-sentiment-latest', 'sentiment-analysis'),
+        'Cardiffnlp_Xlm_Robert': ('cardiffnlp/twitter-xlm-roberta-base-sentiment', 'sentiment-analysis'),
+        'Seethal': ('Seethal/sentiment_analysis_generic_dataset', 'sentiment-analysis'),
+    }
+
+    models = []
+    models.append((vader_model,'Vader_Sentiment','Matches_Vader',None,None))
+
+    for model_name, config in model_configs.items():
+        model = pipeline(model=config[0], task=config[1], top_k=None)
+        sentiment_field = f'{model_name}_Sentiment'
+        matches_field = f'Matches_{model_name}'
+        scores_field = f'{model_name}_Scores'
+        
+        models.append((model, sentiment_field, matches_field, scores_field, None))
+
+    models.append((nlptown,'Bert_Nlptown_Sentiment','Matches_Bert_Nlptown', None,'Bert_Nlptown_Rating'))
+
+    return models
+
 
 # Standardize labels from models
 def standardize_label(label):
-    """ Standardize labels from models """
     if label in ['positive', 'LABEL_2', 'POS']:
         return 'POS'
     if label in ['neutral', 'LABEL_1', 'NEU']:
@@ -35,15 +60,13 @@ def identify_sentiment(sentiment_output):
 
 
 def calculate_overall_scores(row):
-    """ Compute average scores and make checks """
-
     # collect all model scores
     model_scores = [
         row.DistilBERT_Scores, 
         row.Finiteautomata_Scores,
         row.Pysentimiento_Scores, 
         row.Cardiffnlp_Roberta_Scores,
-        row.Cardiffnlp_Xlm_Scores,
+        row.Cardiffnlp_Xlm_Robert_Scores,
         row.Seethal_Scores
     ]
     
@@ -128,9 +151,6 @@ def analyze_sentiment(predictions, threshold=0.5):
 def process_row(models, row):
     review = row.Review
 
-    # Since the models have many different types of outputs, they have to be processed differently.
-    # TODO: Create separate functions for the other models so it looks more readable / cleaner
-
     try:
         for model, sentiment_field, matches_field, scores, rating_field in models:
             if sentiment_field == 'Vader_Sentiment':
@@ -149,103 +169,5 @@ def process_row(models, row):
                 row = row._replace(**{sentiment_field: sentiment_label, matches_field: matches_source,scores:sentiment_scores})
 
     except Exception as e:
-        print(f"Error processing row {row}: {model}",e)
-    # print(row)
+        print(f"Error processing row {row}: ",e)
     return row
-
-
-# Define the namedtuple - header for output
-Row = namedtuple('Row', [
-    'Review', 
-    'Annotated_Sentiment',
-    'Vader_Sentiment', 'Matches_Vader',
-    'DistilBERT_Sentiment', 'Matches_DistilBERT', 'DistilBERT_Scores',
-    'Finiteautomata_Sentiment', 'Matches_Finiteautomata', 'Finiteautomata_Scores',
-    'Pysentimiento_Sentiment', 'Matches_Pysentimiento', 'Pysentimiento_Scores',
-    'Cardiffnlp_Roberta_Sentiment','Matches_Cardiffnlp_Roberta', 'Cardiffnlp_Roberta_Scores',
-    'Cardiffnlp_Xlm_Robert_Sentiment', 'Matches_Cardiffnlp_Xlm_Robert', 'Cardiffnlp_Xlm_Scores',
-    'Seethal_Sentiment', 'Matches_Seethal', 'Seethal_Scores',
-    'Bert_Nlptown_Sentiment','Matches_Bert_Nlptown', 'Bert_Nlptown_Rating',
-    'Overall_Score','Overall_Sentiment', 'Matches_Annotated',
-    ])
-
-start_time = time.time()
-vader_model = SentimentIntensityAnalyzer()
-#Output: {'neg': 0.0, 'neu': 1.0, 'pos': 0.0, 'compound': 0.0}
-
-distilbert_lxyuan_model = pipeline(
-    model="lxyuan/distilbert-base-multilingual-cased-sentiments-student",
-    top_k=None
-) #Output: #[[{'label': 'positive', 'score': 0.7131385803222656}, {'label': 'negative', 'score': 0.18599292635917664}, {'label': 'neutral', 'score': 0.10086847096681595}]]
-
-bert_finiteautomata_model = pipeline(
-    model="finiteautomata/bertweet-base-sentiment-analysis",
-    top_k=None
-) #Output: # [[{'label': 'NEU', 'score': 0.7831833362579346}, {'label': 'POS', 'score': 0.20490024983882904}, {'label': 'NEG', 'score': 0.011916464194655418}]]
-
-robertuito_pysentimiento_model = pipeline(
-    task = "sentiment-analysis",
-    model="pysentimiento/robertuito-sentiment-analysis",
-    top_k=None
-) #Output: # [[{'label': 'NEU', 'score': 0.4580895006656647}, {'label': 'POS', 'score': 0.41687366366386414}, {'label': 'NEG', 'score': 0.12503689527511597}]]
-
-roberta_cardiffnlp_model = pipeline(
-    model="cardiffnlp/twitter-roberta-base-sentiment-latest", 
-    tokenizer = "cardiffnlp/twitter-roberta-base-sentiment-latest",
-    top_k=None
-) #Output: [{'label': 'positive', 'score': 0.9225419163703918}]
-# [[{'label': 'neutral', 'score': 0.5033125877380371}, {'label': 'positive', 'score': 0.4490136206150055}, {'label': 'negative', 'score': 0.04767383635044098}]]
-
-xlm_roberta_cardiffnlp_model = pipeline(
-    model="cardiffnlp/twitter-xlm-roberta-base-sentiment", 
-    tokenizer = "cardiffnlp/twitter-xlm-roberta-base-sentiment",
-    top_k=None
-) #Output: # [[{'label': 'positive', 'score': 0.5015376210212708}, {'label': 'neutral', 'score': 0.3917652368545532}, {'label': 'negative', 'score': 0.10669714957475662}]]
-
-bert_Seethal_model = pipeline(
-    model="Seethal/sentiment_analysis_generic_dataset", 
-    tokenizer = "Seethal/sentiment_analysis_generic_dataset",
-    top_k=None
-) #Output: # [[{'label': 'LABEL_1', 'score': 0.9817678332328796}, {'label': 'LABEL_2', 'score': 0.010082874447107315}, {'label': 'LABEL_0', 'score': 0.008149304427206516}]]
-
-bert_nlptown_model = pipeline(
-    task = "sentiment-analysis",
-    model="nlptown/bert-base-multilingual-uncased-sentiment",
-    top_k=None
-) # Output: [[{'label': '5 stars', 'score': 0.6263141632080078}, {'label': '4 stars', 'score': 0.2967827618122101}, {'label': '3 stars', 'score': 0.05907348543405533}, {'label': '2 stars', 'score': 0.009653439745306969}, {'label': '1 star', 'score': 0.008176111616194248}]]
-
-models = [(vader_model, 'Vader_Sentiment', 'Matches_Vader', None ,None),
-          (distilbert_lxyuan_model, 'DistilBERT_Sentiment', 'Matches_DistilBERT', 'DistilBERT_Scores', None),
-          (bert_finiteautomata_model, 'Finiteautomata_Sentiment', 'Matches_Finiteautomata', 'Finiteautomata_Scores', None),
-          (robertuito_pysentimiento_model, 'Pysentimiento_Sentiment', 'Matches_Pysentimiento', 'Pysentimiento_Scores', None),
-          (roberta_cardiffnlp_model, 'Cardiffnlp_Roberta_Sentiment', 'Matches_Cardiffnlp_Roberta', 'Cardiffnlp_Roberta_Scores', None),
-          (xlm_roberta_cardiffnlp_model, 'Cardiffnlp_Xlm_Robert_Sentiment', 'Matches_Cardiffnlp_Xlm_Robert', 'Cardiffnlp_Xlm_Scores',None),
-          (bert_Seethal_model, 'Seethal_Sentiment', 'Matches_Seethal', 'Seethal_Scores',None),
-          (bert_nlptown_model, 'Bert_Nlptown_Sentiment', 'Matches_Bert_Nlptown', 'Bert_Nlptown_Rating', None)]
-
-
-with open('input.csv', 'r') as file, open('output.csv', 'w', newline='') as outfile:
-    start_time = time.time()
-    reader = csv.reader(file)
-    writer = csv.writer(outfile)
-
-    # Writing the header of the CSV
-    writer.writerow(list(Row._fields))
-
-    # Populate the first two columns Review and Annotated_Sentiment with data from the file
-    row_records = [Row(row[0], row[1], *[''] * (len(Row._fields) - 2)) for row in reader]
-
-    # Process data. partial() makes it easier to use the many different models to use the same function
-    for model in models:
-        process_row_with_model = partial(process_row, [model])
-        row_records = (map(process_row_with_model, row_records))
-
-    row_records = map(calculate_overall_scores, row_records)
-
-    writer.writerows(row_records)  # Write all the modified rows to the output CSV
-
-end_time = time.time()
-print("Execution Time: ", end_time-start_time, " seconds")
-
-
-
