@@ -2,7 +2,7 @@ import csv
 import time
 from collections import namedtuple
 from keyword_extraction import extract_keywords
-from sentiment_analysis import process_row, calculate_overall_scores, initialize_models
+from sentiment_analysis import process_row, calculate_overall_scores, initialize_sentiment_models
 from topic_identification import perform_lda, perform_nmf
 from functools import partial
 
@@ -17,7 +17,17 @@ Row = namedtuple('Row', [
     'Cardiffnlp_Xlm_Robert_Sentiment', 'Matches_Cardiffnlp_Xlm_Robert', 'Cardiffnlp_Xlm_Robert_Scores',
     'Seethal_Sentiment', 'Matches_Seethal', 'Seethal_Scores',
     'Bert_Nlptown_Sentiment', 'Matches_Bert_Nlptown', 'Bert_Nlptown_Rating',
-    'Overall_Score', 'Overall_Sentiment', 'Matches_Annotated',
+    'Overall_Score', 'Overall_Sentiment', 'Matches_Annotated'
+])
+
+Pos_Header = namedtuple('Row', [
+    'ID', 'Review', 'Annotated_Sentiment',
+    'Nouns_MoritzMNLI_Deberta', 'Verbs_MoritzMNLI_Deberta', 'Adjectives_MoritzMNLI_Deberta',
+    'Nouns_MoritzMulti_Deberta', 'Verbs_MoritzMulti_Deberta', 'Adjectives_MoritzMulti_Deberta',
+    'Nouns_Crossencoder_Roberta', 'Verbs_Crossencoder_Roberta', 'Adjectives_Crossencoder_Roberta',
+    'Nouns_Valhalla_Distilbart', 'Verbs_Valhalla_Distilbart', 'Adjectives_Valhalla_Distilbart',
+    'Nouns_Narsil_Deberta', 'Verbs_Narsil_Deberta', 'Adjectives_Narsil_Deberta',
+    'Nouns_Crossencoder_Deberta', 'Verbs_Crossencoder_Deberta', 'Adjectives_Crossencoder_Deberta'
 ])
 
 # Keyword_Header = namedtuple('Row', ['ID','Review', 'Rake_Keywords', 'Yake_Keywords', 'TextRank_Keywords', 'KeyBERT_Keywords'])

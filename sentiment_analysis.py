@@ -5,7 +5,7 @@ from multiprocessing import Pool
 from collections import namedtuple, defaultdict
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-def initialize_models():
+def initialize_sentiment_models():
     vader_model = SentimentIntensityAnalyzer()
     nlptown = pipeline(task = "sentiment-analysis",model="nlptown/bert-base-multilingual-uncased-sentiment",top_k=None)
 
