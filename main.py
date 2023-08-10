@@ -20,7 +20,8 @@ Row = namedtuple('Row', [
     'Overall_Score', 'Overall_Sentiment', 'Matches_Annotated',
 ])
 
-Keyword_Header = namedtuple('Row', ['ID','Review', 'Rake_Keywords', 'Yake_Keywords', 'TextRank_Keywords', 'KeyBERT_Keywords'])
+# Keyword_Header = namedtuple('Row', ['ID','Review', 'Rake_Keywords', 'Yake_Keywords', 'TextRank_Keywords', 'KeyBERT_Keywords'])
+Keyword_Header = namedtuple('Row', ['ID','Review', 'Rake_Keywords', 'Yake_Keywords', 'TextRank_Keywords', 'KeyBERT_Keywords','Keybert_Optimized_Keywords'])
 Topics_Header = namedtuple('Row', ['LDA_Topics', 'NMF_Topics'])
 
 def main():
@@ -54,15 +55,16 @@ def main():
 		for row in row_records:
 			keyword_records.append(extract_keywords(row.ID,row.Review))
 			reviews.append(row.Review)
-
-		sentiment_writer.writerows(row_records)  # Write all the modified rows to the output CSV
-		keyword_writer.writerows(keyword_records)
+			sentiment_writer.writerow(row)
 
 		lda_topics = perform_lda(reviews)
 		nmf_topics = perform_nmf(reviews)
 
 		for iterate in range(len(lda_topics)):
 			topics_writer.writerow([lda_topics[iterate],nmf_topics[iterate]])
+
+		# sentiment_writer.writerows(row_records)  # Write all the modified rows to the output CSV
+		keyword_writer.writerows(keyword_records)
 
 		end_time = time.time()
 		print("Execution Time: ", end_time - start_time, " seconds")
