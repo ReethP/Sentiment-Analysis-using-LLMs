@@ -2,6 +2,18 @@ import csv
 from transformers import AutoTokenizer, AutoModelForTokenClassification, TokenClassificationPipeline
 from collections import namedtuple, defaultdict
 
+Zero_Shot_Header = namedtuple('Row', [
+    'ID', 'Review', 'Annotated_Sentiment',
+    'Labels_MoritzMNLI_Deberta',
+    'Labels_MoritzMulti_Deberta',
+    'Labels_Crossencoder_Roberta',
+    'Labels_Valhalla_Distilbart',
+    'Labels_Narsil_Deberta',
+    'Labels_Crossencoder_Deberta'
+])
+
+
+
 def initialize_zeroshot_models():
 
 	model_configs = {

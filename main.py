@@ -20,16 +20,6 @@ Row = namedtuple('Row', [
     'Overall_Score', 'Overall_Sentiment', 'Matches_Annotated'
 ])
 
-Pos_Header = namedtuple('Row', [
-    'ID', 'Review', 'Annotated_Sentiment',
-    'Nouns_MoritzMNLI_Deberta', 'Verbs_MoritzMNLI_Deberta', 'Adjectives_MoritzMNLI_Deberta',
-    'Nouns_MoritzMulti_Deberta', 'Verbs_MoritzMulti_Deberta', 'Adjectives_MoritzMulti_Deberta',
-    'Nouns_Crossencoder_Roberta', 'Verbs_Crossencoder_Roberta', 'Adjectives_Crossencoder_Roberta',
-    'Nouns_Valhalla_Distilbart', 'Verbs_Valhalla_Distilbart', 'Adjectives_Valhalla_Distilbart',
-    'Nouns_Narsil_Deberta', 'Verbs_Narsil_Deberta', 'Adjectives_Narsil_Deberta',
-    'Nouns_Crossencoder_Deberta', 'Verbs_Crossencoder_Deberta', 'Adjectives_Crossencoder_Deberta'
-])
-
 # Keyword_Header = namedtuple('Row', ['ID','Review', 'Rake_Keywords', 'Yake_Keywords', 'TextRank_Keywords', 'KeyBERT_Keywords'])
 Keyword_Header = namedtuple('Row', ['ID','Review', 'Rake_Keywords', 'Yake_Keywords', 'TextRank_Keywords', 'KeyBERT_Keywords','Keybert_Optimized_Keywords'])
 Topics_Header = namedtuple('Row', ['LDA_Topics', 'NMF_Topics'])
@@ -39,7 +29,7 @@ def main():
 	keyword_records = []
 	reviews = []
 
-	models = initialize_models()  # Initialize models using the function
+	models = initialize_sentiment_models()  # Initialize models using the function
 	with open('input.csv', 'r') as file, open('sentiment.csv', 'w', newline='') as senitment_output, open('keywords.csv', 'w', newline='') as keywords_output, open('topics.csv', 'w', newline='') as topics_output:
 		start_time = time.time()
 		reader = csv.reader(file)

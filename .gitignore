@@ -11,3 +11,5 @@ __pycache__/topic_identification.cpython-311.pyc
 fodebug.txt
 topics_backup.py
 develop_file.py
+__pycache__/pos_tagging.cpython-311.pyc
+run_file.py

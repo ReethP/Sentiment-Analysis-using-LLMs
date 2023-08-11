@@ -164,7 +164,7 @@ def process_row(models, row):
                 sentiment_label, star_rating = analyze_sentiment(model(review))
                 row = row._replace(Bert_Nlptown_Sentiment=sentiment_label, Matches_Bert_Nlptown=(sentiment_label == row.Annotated_Sentiment), Bert_Nlptown_Rating=star_rating)
             else:
-                sentiment_label,sentiment_scores = identify_sentiment(model(review)[0])
+                sentiment_label,sentiment_scores = identify_sentiment(model(review)[0]) #the output is in a list, needs to be indexed 
                 matches_source = (sentiment_label == row.Annotated_Sentiment)
                 row = row._replace(**{sentiment_field: sentiment_label, matches_field: matches_source,scores:sentiment_scores})
 
