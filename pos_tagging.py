@@ -23,6 +23,8 @@ from nltk.tokenize import TweetTokenizer
 
 # mrm8488 tags X as an adjective
 
+# Additional notes: Possible use for lemmatization or stemming but for now is hard to handle because inaccurate performance to tagalog in the reviews.
+# Additionally, look into removing stopwords and numbers. Unless plan to feed into other models
 
 # Perform overall count here, possible add a new column for it
 def overall_count(row_records):
