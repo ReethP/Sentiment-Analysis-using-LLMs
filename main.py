@@ -20,7 +20,6 @@ Row = namedtuple('Row', [
     'Overall_Score', 'Overall_Sentiment', 'Matches_Annotated'
 ])
 
-# Keyword_Header = namedtuple('Row', ['ID','Review', 'Rake_Keywords', 'Yake_Keywords', 'TextRank_Keywords', 'KeyBERT_Keywords'])
 Keyword_Header = namedtuple('Row', ['ID','Review', 'Rake_Keywords', 'Yake_Keywords', 'TextRank_Keywords', 'KeyBERT_Keywords','Keybert_Optimized_Keywords'])
 Topics_Header = namedtuple('Row', ['LDA_Topics', 'NMF_Topics'])
 
@@ -50,8 +49,13 @@ def main():
 		    process_row_with_model = partial(process_row, [model])
 		    row_records = (map(process_row_with_model, row_records))
 
+		# Apple the function calculate_overall_scores to all values in row_records
 		row_records = map(calculate_overall_scores, row_records)
 
+
+		# Perform keyword extraction and put it into a variable while extrating the review from each row.
+		# This is to be used in topic identification using LDA and NMF. Every line in the row_records
+		# is also written into the excel file
 		for row in row_records:
 			keyword_records.append(extract_keywords(row.ID,row.Review))
 			reviews.append(row.Review)
@@ -60,10 +64,11 @@ def main():
 		lda_topics = perform_lda(reviews)
 		nmf_topics = perform_nmf(reviews)
 
+		# write the topics identified by LDA and NMF into its own file
 		for iterate in range(len(lda_topics)):
 			topics_writer.writerow([lda_topics[iterate],nmf_topics[iterate]])
 
-		# sentiment_writer.writerows(row_records)  # Write all the modified rows to the output CSV
+		# Write the identified keywords into an excel file
 		keyword_writer.writerows(keyword_records)
 
 		end_time = time.time()

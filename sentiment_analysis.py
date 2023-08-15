@@ -5,8 +5,13 @@ from multiprocessing import Pool
 from collections import namedtuple, defaultdict
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
+# Initializes models. Run download.py to download all LLMs before use
 def initialize_sentiment_models():
+
+    # Vader loaded separately as it is not an LLM
     vader_model = SentimentIntensityAnalyzer()
+
+    # Load separately as LLM is different from all others in terms of output and initialization
     nlptown = pipeline(task = "sentiment-analysis",model="nlptown/bert-base-multilingual-uncased-sentiment",top_k=None)
 
     model_configs = {
@@ -21,12 +26,14 @@ def initialize_sentiment_models():
     models = []
     models.append((vader_model,'Vader_Sentiment','Matches_Vader',None,None))
 
+    # Huggingface documentation goes into details but top_k allows you to see the scores instead of just 1
     for model_name, config in model_configs.items():
         model = pipeline(model=config[0], task=config[1], top_k=None)
         sentiment_field = f'{model_name}_Sentiment'
         matches_field = f'Matches_{model_name}'
         scores_field = f'{model_name}_Scores'
         
+        # The other variables aside from the model are for the header labels
         models.append((model, sentiment_field, matches_field, scores_field, None))
 
     models.append((nlptown,'Bert_Nlptown_Sentiment','Matches_Bert_Nlptown', None,'Bert_Nlptown_Rating'))
@@ -34,7 +41,7 @@ def initialize_sentiment_models():
     return models
 
 
-# Standardize labels from models
+# Standardize labels from models as not all models return the same labels
 def standardize_label(label):
     if label in ['positive', 'LABEL_2', 'POS']:
         return 'POS'
@@ -42,9 +49,10 @@ def standardize_label(label):
         return 'NEU'
     if label in ['negative', 'LABEL_0', 'NEG']:
         return 'NEG'
-    return 'NULL' # Possible if the model has no label. Will be counted later on to see robustness of models towards dirty data
+    return 'NULL' # Possible if the model has no label or if error occurred
 
-
+# Determine if it's pos, neg, or neu. The output returned by the models is a list of dictionaries
+# with keys 'label', 'score', and values pos/neg/neu and probability score
 def identify_sentiment(sentiment_output):
     max_score = 0
     max_label = ""
@@ -58,7 +66,7 @@ def identify_sentiment(sentiment_output):
 
     return max_label,sentiment_output
 
-
+# Get the average of all scores from all the models and determine a sentiment from that
 def calculate_overall_scores(row):
     # collect all model scores
     model_scores = [
@@ -101,6 +109,7 @@ def calculate_overall_scores(row):
 
 
 # Assign sentiment based on polarity score. Standard values used by vader to assign sentiment
+# separate function as again VADER is not an LLM
 def vader_sentiment(vader_model,review):
     # The output looks like this Output: {'neg': 0.0, 'neu': 1.0, 'pos': 0.0, 'compound': 0.0}
     if vader_model.polarity_scores(review)['compound'] >= 0.05:
@@ -116,6 +125,9 @@ def vader_sentiment(vader_model,review):
 # Documentation for the model is found here https://huggingface.co/nlptown/bert-base-multilingual-uncased-sentiment
 # Output of the model looks like 
 # [[{'label': '5 stars', 'score': 0.6263141632080078}, {'label': '4 stars', 'score': 0.2967827618122101}, {'label': '3 stars', 'score': 0.05907348543405533}, {'label': '2 stars', 'score': 0.009653439745306969}, {'label': '1 star', 'score': 0.008176111616194248}]]
+# The model outputs stars, not sentiment value. I made this function in hopes of extracting a sentiment value
+# from the number of stars that users assigned. Possible that it's not accurate due to the distribution of
+# data as I wrote this under the assumption that the data had a normal distribution
 def analyze_sentiment(predictions, threshold=0.5):
     # initialize varioable
     predictions = predictions[0]
@@ -127,7 +139,7 @@ def analyze_sentiment(predictions, threshold=0.5):
     total_probability = sum(prediction['score'] for prediction in predictions)
     avg_star_rating = total_star_weight / total_probability  # weighted average
 
-    # These are arbitrary values. Adjust accordingly
+    # These are arbitrary values. Adjust accordingly to the distribution of the scores
     if avg_star_rating < 3.1:
         sentiment_label = "NEG"
     elif avg_star_rating <= 4.1:
@@ -148,6 +160,7 @@ def analyze_sentiment(predictions, threshold=0.5):
 
     return sentiment_label, star_rating
 
+# Apply sentiment analysis to row
 def process_row(models, row):
     review = row.Review
 
@@ -157,6 +170,7 @@ def process_row(models, row):
                 # Assign the label in function created from a previous implementation
                 sentiment_label = vader_sentiment(model, review)
                 matches_source = (sentiment_label == row.Annotated_Sentiment)
+                # Assign values to the respective headers in the row.
                 row = row._replace(Vader_Sentiment=sentiment_label, Matches_Vader=matches_source)
 
             elif sentiment_field == 'Bert_Nlptown_Sentiment':
