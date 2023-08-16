@@ -106,7 +106,7 @@ def identify_pos(pipeline_output):
     hash_flag = 0
     # Start processing the pipeline output
     for result in pipeline_output:
-        print(result)
+        # print(result)
         # Words attached with `##` are subwords
         entity_type = standardize_labels(result['entity'])
         if '##' in result['word']:
@@ -114,7 +114,7 @@ def identify_pos(pipeline_output):
             try:
                 counts[entity_type].pop(last_word['General'])
             except:
-                print()
+                hash_flag = 1
             hash_flag = 1
             last_word['General'] = last_word['General'] + result['word'].replace('##', '')
             
