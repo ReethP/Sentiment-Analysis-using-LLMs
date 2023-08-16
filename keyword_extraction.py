@@ -3,13 +3,14 @@ import yake
 from keybert import KeyBERT
 from summa import keywords
 from collections import namedtuple
+
+# A study suggested that keyphrase vectorizers might improve the performance of BERT keywords. Performance has not be evaluated
 from keyphrase_vectorizers import KeyphraseCountVectorizer
 
 # Define the named tuple
-# Row = namedtuple('Row', ['ID','raw_review', 'rake_keywords', 'yake_keywords', 'textrank_keywords', 'keybert_keywords'])
 Row = namedtuple('Row', ['ID','raw_review', 'rake_keywords', 'yake_keywords', 'textrank_keywords', 'keybert_keywords', 'keybert_optimized_keywords'])
 
-# Keyword extraction tools
+# Keyword extraction tools and models initialization (Text rank doesn't need to be initialized)
 r = Rake()
 kw_extractor = yake.KeywordExtractor()
 kw_model = KeyBERT(model='all-mpnet-base-v2')

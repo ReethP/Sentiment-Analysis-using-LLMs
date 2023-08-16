@@ -7,12 +7,12 @@ from nltk.tokenize import TweetTokenizer
   # >>> import nltk
   # >>> nltk.download('omw-1.4')
 
-# QCRI
+# QCRI Tags
 # JJ = Adjective
 # VB/VBD = Verb
 # NN/NNP = Noun / Proper Noun
 
-# TweebankNLP
+# TweebankNLP Tags
 
 # ADJ = adjective 
 # VERB = verb
@@ -21,14 +21,12 @@ from nltk.tokenize import TweetTokenizer
 # NOUN = noun 
 # split by @
 
-# mrm8488 tags X as an adjective
+# mrm8488 seems to tag X and ADJ as adjective
 
 # Additional notes: Possible use for lemmatization or stemming but for now is hard to handle because inaccurate performance to tagalog in the reviews.
 # Additionally, look into removing stopwords and numbers. Unless plan to feed into other models
 
-# Perform overall count here, possible add a new column for it
-def overall_count(row_records):
-    print("hello")
+# For refactoring and documentation
 
 def standardize_labels(label):
     if label in ['JJ', 'ADJ','X', 'ADV']:
@@ -39,6 +37,8 @@ def standardize_labels(label):
         return 'Noun'
     return 'Others' # All other labels
 
+
+# Initialize the models used in pos tagging. Similar concept from the sentiment analysis module
 def initialize_pos_models():
 
     model_configs = {
@@ -90,6 +90,7 @@ def identify_pos_bertweet(pipeline_output):
             last_word['General'] = ''
             continue
         
+        # Process other words that don't come after an @@ flag or doesn't contain an @@
         last_word['General'] = result['word']
         counts[entity_type][last_word['General']] = counts[entity_type].get(last_word['General'], 0) + 1
         last_word['General'] = ''
@@ -105,7 +106,7 @@ def identify_pos(pipeline_output):
     hash_flag = 0
     # Start processing the pipeline output
     for result in pipeline_output:
-        print(result)
+        # print(result)
         # Words attached with `##` are subwords
         entity_type = standardize_labels(result['entity'])
         if '##' in result['word']:
@@ -113,7 +114,7 @@ def identify_pos(pipeline_output):
             try:
                 counts[entity_type].pop(last_word['General'])
             except:
-                print()
+                hash_flag = 1
             hash_flag = 1
             last_word['General'] = last_word['General'] + result['word'].replace('##', '')
             
@@ -133,20 +134,21 @@ def identify_pos(pipeline_output):
 
     return counts['Noun'], counts['Verb'], counts['Adjective'], counts['Others']
 
-def process_row(models, row):
-    # I also need to take the sentiment into account when summarizing
-    # these are turned into # when tokenized. Simply remove them beforehand
+def tag_row(models, row):
+
+    # remove commans and periods as they seem to interfere with the tokenizers.
     review = row.Review.replace(',','').replace('.','')
     # tokenizer = TweetTokenizer()
     try:
         for model, noun_field, verb_field, adjective_field, others_field in models:
-            print(others_field)
+            # print(others_field)
+            # process this separately as this is the only model that uses @@as a separator between the words. It has a different behavior compared to the models that use ##
+            # where @@ seems to always appear at the end of the first half while ## appears at the start of the second half.s
             if noun_field == 'Nouns_TweebankNLP_Bert':
                 nouns, verbs, adjectives, others = identify_pos_bertweet(model(review))
             else:
                 nouns, verbs, adjectives, others = identify_pos(model(review))
             row = row._replace(**{noun_field: nouns, verb_field: verbs, adjective_field: adjectives, others_field: others})
     except Exception as e:
-        # print()
         print(f"Error processing row {row}: ",e)
     return row

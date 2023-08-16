@@ -1,22 +1,30 @@
 from transformers import AutoModel, AutoTokenizer
+from keybert import KeyBERT
+
+# The following might also be needed to be downloaded depending on your nltk installation
+# import nltk
+# nltk.download('omw-1.4')
+
+
+# uncommented models are the models that are currently in use. Other models are possible models that might be used in the future or identified useful models in general
 
 model_urls = [
 
     # Sentiment Analysis models
     # "transformer3/H2-keywordextractor", # A possible future model to be used for keyword extraction
-    # "finiteautomata/bertweet-base-sentiment-analysis", # roBERTa finetuned for Sentiment Analysis using english twitter data
-    # "lxyuan/distilbert-base-multilingual-cased-sentiments-student", # distilbert finetuned for Sentiment Analysis using student reviews
-    # "pysentimiento/robertuito-sentiment-analysis", # roBERTa finetuned for Sentiment Analysis using Spanish twitter Data
-    # "cardiffnlp/twitter-roberta-base-sentiment-latest", # roBERTa finetuned for Sentiment Analysis  using english twitter data
-    # "cardiffnlp/twitter-xlm-roberta-base-sentiment", # roBERTa finetuned on twitter data using multiple languages
-    # "Seethal/sentiment_analysis_generic_dataset", # BERT finetuned for Sentiment Analysis using a generic dataset
-    # "nlptown/bert-base-multilingual-uncased-sentiment", # BERT finetuned to predict star-rating using multilingual reviews
+    "finiteautomata/bertweet-base-sentiment-analysis", # roBERTa finetuned for Sentiment Analysis using english twitter data
+    "lxyuan/distilbert-base-multilingual-cased-sentiments-student", # distilbert finetuned for Sentiment Analysis using student reviews
+    "pysentimiento/robertuito-sentiment-analysis", # roBERTa finetuned for Sentiment Analysis using Spanish twitter Data
+    "cardiffnlp/twitter-roberta-base-sentiment-latest", # roBERTa finetuned for Sentiment Analysis  using english twitter data
+    "cardiffnlp/twitter-xlm-roberta-base-sentiment", # roBERTa finetuned on twitter data using multiple languages
+    "Seethal/sentiment_analysis_generic_dataset", # BERT finetuned for Sentiment Analysis using a generic dataset
+    "nlptown/bert-base-multilingual-uncased-sentiment", # BERT finetuned to predict star-rating using multilingual reviews
 
     # POS Tagging Models
-    # 'mrm8488/bert-spanish-cased-finetuned-pos-16-tags',
-    # 'vblagoje/bert-english-uncased-finetuned-pos',
-    # 'QCRI/bert-base-multilingual-cased-pos-english',
-    # 'TweebankNLP/bertweet-tb2_ewt-pos-tagging',
+    'mrm8488/bert-spanish-cased-finetuned-pos-16-tags',
+    'vblagoje/bert-english-uncased-finetuned-pos',
+    'QCRI/bert-base-multilingual-cased-pos-english',
+    'TweebankNLP/bertweet-tb2_ewt-pos-tagging',
 
     # Zero-Shot classification
 
@@ -43,6 +51,11 @@ model_urls = [
     # "google/byt5-large",
     # "google/mt5-large"
 
+# model needed for keyword extraction using bert
+kw_model = KeyBERT(model='all-mpnet-base-v2')
+
+# Load the model so it can be downloaded on the machine. This will save the model to your cache and will stay 
+# there unless deleted. Check documentation if the cache needs to be moved elsewhere
 for model_url in model_urls:
     print(f"Downloading {model_url}...")
     model = AutoModel.from_pretrained(model_url)
