@@ -28,10 +28,6 @@ from nltk.tokenize import TweetTokenizer
 
 # For refactoring and documentation
 
-# # Perform overall count here, possible add a new column for it
-# def overall_count(row_records):
-#     print("hello")
-
 def standardize_labels(label):
     if label in ['JJ', 'ADJ','X', 'ADV']:
         return 'Adjective'
@@ -138,7 +134,7 @@ def identify_pos(pipeline_output):
 
     return counts['Noun'], counts['Verb'], counts['Adjective'], counts['Others']
 
-def process_row(models, row):
+def tag_row(models, row):
 
     # remove commans and periods as they seem to interfere with the tokenizers.
     review = row.Review.replace(',','').replace('.','')

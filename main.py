@@ -6,7 +6,7 @@ from sentiment_analysis import process_row, calculate_overall_scores, initialize
 from topic_identification import perform_lda, perform_nmf
 from functools import partial
 
-# Define the namedtuple - header for sentiment output
+# Define the namedtuple - header for output files
 Row = namedtuple('Row', [
     'ID', 'Review', 'Annotated_Sentiment',
     'Vader_Sentiment', 'Matches_Vader',
@@ -21,6 +21,7 @@ Row = namedtuple('Row', [
 ])
 
 Keyword_Header = namedtuple('Row', ['ID','Review', 'Rake_Keywords', 'Yake_Keywords', 'TextRank_Keywords', 'KeyBERT_Keywords','Keybert_Optimized_Keywords'])
+
 Topics_Header = namedtuple('Row', ['LDA_Topics', 'NMF_Topics'])
 
 def main():
@@ -29,14 +30,16 @@ def main():
 	reviews = []
 
 	models = initialize_sentiment_models()  # Initialize models using the function
-	with open('input.csv', 'r') as file, open('sentiment.csv', 'w', newline='') as senitment_output, open('keywords.csv', 'w', newline='') as keywords_output, open('topics.csv', 'w', newline='') as topics_output:
+
+	with open('input.csv', 'r') as file, open('sentiment.csv', 'w', newline='') as senitment_output, \
+	open('keywords.csv', 'w', newline='') as keywords_output, open('topics.csv', 'w', newline='') as topics_output:
 		start_time = time.time()
 		reader = csv.reader(file)
 		sentiment_writer = csv.writer(senitment_output)
 		keyword_writer = csv.writer(keywords_output)
 		topics_writer = csv.writer(topics_output)
 
-		# Skip header
+		# Skip header of input file and write headers of output files
 		next(reader)
 		sentiment_writer.writerow(list(Row._fields))
 		keyword_writer.writerow(list(Keyword_Header._fields))
@@ -44,6 +47,7 @@ def main():
 
 		# Populate the first three columns IDm Review, and Annotated_Sentiment with data from the file
 		row_records = [Row(row[0], row[1], row[2], *[''] * (len(Row._fields) - 3)) for row in reader]
+
 		# Process data. partial() makes it easier to use the many different models to use the same function
 		for model in models:
 		    process_row_with_model = partial(process_row, [model])
@@ -68,7 +72,7 @@ def main():
 		for iterate in range(len(lda_topics)):
 			topics_writer.writerow([lda_topics[iterate],nmf_topics[iterate]])
 
-		# Write the identified keywords into an excel file
+		# Write the identified keywords and pos into an excel file
 		keyword_writer.writerows(keyword_records)
 
 		end_time = time.time()
