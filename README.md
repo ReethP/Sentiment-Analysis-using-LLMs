@@ -2,7 +2,7 @@
 
 This repository is a proof of concept made for my Internship. There are 4 different modules, namely: sentiment analysis, topic_identification, keyword_extration, and pos_tagging.
 
-Before anything else, all the models need to be downloaded from huggingface. Run `download.py` and all relevant models that are used in this repository will be downloaded onto your local machine. `Main.py` will perform sentiment analysis, topic identification, and keyword extraction while `pos_driver` will perform Parts of Speech Tagging on the dataset
+Before anything else, all the models need to be downloaded from huggingface. Run `download.py` and all relevant models that are used in this repository will be downloaded onto your local machine. `Main.py` will perform sentiment analysis, topic identification, and keyword extraction while `pos_driver` will perform Parts of Speech Tagging on the dataset. input.csv has three columns, namely: ID (int), Review (str), and label (str). Changes to the program is necessary if it needs to be applied on a non-annotated dataset but is minor
 
 ## Sentiment analysis
 There are 7 different LLMs that are used in this module alongside VADER. A traditional NLP sentiment analysis tool is being used alongside the LLMs to find a point of reference in terms of accuracy against the traditional tools. Most models simply identify the sentiment and a score; however, the model trained by NLPTown goes one step further and identifies the number of stars the user possibly would’ve given alongside the review. Another function was written that will allow this model to give a sentiment by using the number of stars.
